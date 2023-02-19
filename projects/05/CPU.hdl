@@ -25,6 +25,51 @@
  * than to the address resulting from executing the current instruction. 
  */
 
+/**
+ * i x x a c c c c c c d d d j j j
+ * │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ └─ instruction[0]
+ * │ │ │ │ │ │ │ │ │ │ │ │ │ │ └─── instruction[1]
+ * │ │ │ │ │ │ │ │ │ │ │ │ │ └───── instruction[2]
+ * │ │ │ │ │ │ │ │ │ │ │ │ └─────── instruction[3]
+ * │ │ │ │ │ │ │ │ │ │ │ └───────── instruction[4]
+ * │ │ │ │ │ │ │ │ │ │ └─────────── instruction[5]
+ * │ │ │ │ │ │ │ │ │ └───────────── instruction[6]
+ * │ │ │ │ │ │ │ │ └─────────────── instruction[7]
+ * │ │ │ │ │ │ │ └───────────────── instruction[8]
+ * │ │ │ │ │ │ └─────────────────── instruction[9]
+ * │ │ │ │ │ └───────────────────── instruction[10]
+ * │ │ │ │ └─────────────────────── instruction[11]
+ * │ │ │ └───────────────────────── instruction[12]
+ * │ │ └─────────────────────────── instruction[13]
+ * │ └───────────────────────────── instruction[14]
+ * └─────────────────────────────── instruction[15]
+ */
+
+/**
+ * |  comp                    | c c c c c c |
+ * |--------|--------|--------|-------------|
+ * |    0   |        |    0   | 1 0 1 0 1 0 | zx=1, nx=0, zy=1, ny=0, f=1, no=0
+ * |    1   |        |    1   | 1 1 1 1 1 1 |
+ * |   -1   |        |   -1   | 1 1 1 0 1 0 |
+ * |    D   |        |    x   | 0 0 1 1 0 0 |
+ * |    A   |    M   |    y   | 1 1 0 0 0 0 |
+ * |   !D   |        |   !x   | 0 0 1 1 0 1 | zx=0, nx=0, zy=1, ny=1, f=0, no=1
+ * |   !A   |   !M   |   !y   | 1 1 0 0 0 1 |
+ * |   -D   |        |   -x   | 0 0 1 1 1 1 |
+ * |   -A   |   -M   |   -y   | 1 1 0 0 1 1 |
+ * |   D+1  |        |   x+1  | 0 1 1 1 1 1 |
+ * |   A+1  |   M+1  |   y+1  | 1 1 0 1 1 1 |
+ * |   D-1  |        |   x-1  | 0 0 1 1 1 0 |
+ * |   A-1  |   M-1  |   y-1  | 1 1 0 0 1 0 |
+ * |   D+A  |   D+M  |   x+y  | 0 0 0 0 1 0 | zx=0, nx=0, zy=0, ny=0, f=1, no=0
+ * |   D-A  |   D-M  |   x-y  | 0 1 0 0 1 1 | zx=0, nx=1, zy=0, ny=0, f=1, no=1
+ * |   A-D  |   M-D  |   y-x  | 0 0 0 1 1 1 | zx=0, nx=0, zy=0, ny=1, f=1, no=1
+ * |   D&A  |   D&M  |   x&y  | 0 0 0 0 0 0 | zx=0, nx=0, zy=0, ny=0, f=0, no=0
+ * |   D|A  |   D|M  |   x|y  | 0 1 0 1 0 1 | zx=0, nx=1, zy=0, ny=1, f=0, no=1
+ * | a == 0 | a == 1 |----------------------|
+ * |----------------------------------------|
+ */
+
 CHIP CPU {
 
     IN  inM[16],         // M value input  (M = contents of RAM[A])
@@ -34,10 +79,72 @@ CHIP CPU {
                          // the current program (reset==0).
 
     OUT outM[16],        // M value output
-        writeM,          // Write to M? 
+        writeM,          // Write to M?
         addressM[15],    // Address in data memory (of M)
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+
+    Mux16( a=instruction
+         , b=alu-out
+         , sel=instruction[15]
+         , out=instruction-or-alu-out
+         );
+
+    Not(in=instruction[15], out=instruction-type-a);
+    Or(a=instruction-type-a, b=instruction[5], out=load-a-register);
+    ARegister( in=instruction-or-alu-out
+             , load=load-a-register
+             , out=a-register-out
+             , out[0..14]=addressM
+             );
+
+    Mux16( a=a-register-out
+         , b=inM
+         , sel=instruction[12] /* a bit */
+         , out=a-register-out-or-inM
+         );
+
+    ALU( x=d-register-out
+       , y=a-register-out-or-inM
+       , zx=instruction[11]
+       , nx=instruction[10]
+       , zy=instruction[9]
+       , ny=instruction[8]
+       , f=instruction[7]
+       , no=instruction[6]
+       , out=alu-out
+       , out=outM
+       , zr=eq
+       , ng=lt
+       );
+
+    And(a=instruction[15], b=instruction[4], out=load-d-register);
+    DRegister( in=alu-out
+             , load=load-d-register
+             , out=d-register-out
+             );
+
+    Not(in=eq, out=ne);
+    Not(in=lt, out=ge);
+    And(a=ne, b=ge, out=gt);
+    Or(a=lt, b=eq, out=le);
+
+    Mux(a=false,   b=gt,      sel=instruction[0], out=jmux0-1);
+    Mux(a=eq,      b=ge,      sel=instruction[0], out=jmux2-3);
+    Mux(a=lt,      b=ne,      sel=instruction[0], out=jmux4-5);
+    Mux(a=le,      b=true,    sel=instruction[0], out=jmux6-7);
+    Mux(a=jmux0-1, b=jmux2-3, sel=instruction[1], out=jmux0-3);
+    Mux(a=jmux4-5, b=jmux6-7, sel=instruction[1], out=jmux4-7);
+    Mux(a=jmux0-3, b=jmux4-7, sel=instruction[2], out=jmux0-7);
+
+    And(a=instruction[15], b=jmux0-7, out=do-jump);
+    PC( in=a-register-out
+      , load=do-jump
+      , inc=true
+      , reset=reset
+      , out[0..14]=pc
+      );
+
+    And(a=instruction[15], b=instruction[3], out=writeM);
 }

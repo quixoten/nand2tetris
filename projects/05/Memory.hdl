@@ -26,6 +26,38 @@ CHIP Memory {
     IN in[16], load, address[15];
     OUT out[16];
 
+    /*
+      000 0000 0000 0000 to 011 1111 1111 1111 =      ram selected
+      100 0000 0000 0000 to 101 1111 1111 1111 =   screen selected
+      110 0000 0000 0000 to 110 0000 0000 0000 = keyboard selected
+      110 0000 0000 0001 to 111 1111 1111 1111 = invalid/undefined
+      ┃┃┃
+      ┃┃┗━ address[12]
+      ┃┗━━ address[13]
+      ┗━━━ address[14]
+    */
+
     PARTS:
-    // Put your code here:
+    Not(in=address[14], out=ram-selected);
+    And(a=ram-selected, b=load, out=ram-load);
+    RAM16K(in=in, load=ram-load, address[0..13]=address[0..13], out=ram-out);
+
+    Not(in=address[13], out=not-address-13);
+    And(a=address[14], b=not-address-13, out=screen-selected);
+    And(a=screen-selected, b=load, out=screen-load);
+    Screen(in=in, load=screen-load, address=address[0..12], out=screen-out);
+
+    Keyboard(out=keyboard-out);
+
+    Mux8Way16( a=ram-out                    /* address[12..14] = 000 */
+             , b=ram-out                    /* address[12..14] = 001 */
+             , c=ram-out                    /* address[12..14] = 010 */
+             , d=ram-out                    /* address[12..14] = 011 */
+             , e=screen-out                 /* address[12..14] = 100 */
+             , f=screen-out                 /* address[12..14] = 101 */
+             , g=keyboard-out               /* address[12..14] = 110 */
+             , h=false                      /* address[12..14] = 111 */
+             , sel=address[12..14]
+             , out=out
+             );
 }
