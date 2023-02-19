@@ -7,7 +7,7 @@ hardware_simulator="${tools_dir}/HardwareSimulator.sh"
 cpu_emulator="${tools_dir}/CPUEmulator.sh"
 
 
-for project_number in 05; do
+for project_number in 01 02 03 04 05; do
 	while read -rs tst; do
 		if [[ $project_number -eq 4 ]]; then
 			test_tool="${cpu_emulator}"
