@@ -3,10 +3,43 @@
 // by Nisan and Schocken, MIT Press.
 // File name: projects/01/Mux.hdl
 
-/** 
- * Multiplexor:
- * out = a if sel == 0
- *       b otherwise
+/**
+ * ┏━━━┳━━━┳━━━━━▄━━━━━┓
+ * ┃ a ┃ b ┃ sel █ out ┃
+ * ┣━━━╋━━━╋━━━━━█━━━━━┫
+ * ┃ 0 ┃ 0 ┃  0  █  0  ┃
+ * ┃ 0 ┃ 0 ┃  1  █  0  ┃
+ * ┃ 0 ┃ 1 ┃  0  █  0  ┃
+ * ┃ 0 ┃ 1 ┃  1  █  1  ┃ ¬a ∧  b ∧  sel
+ * ┃ 1 ┃ 0 ┃  0  █  1  ┃  a ∧ ¬b ∧ ¬sel
+ * ┃ 1 ┃ 0 ┃  1  █  0  ┃
+ * ┃ 1 ┃ 1 ┃  0  █  1  ┃  a ∧  b ∧ ¬sel
+ * ┃ 1 ┃ 1 ┃  1  █  1  ┃  a ∧  b ∧  sel
+ * ┗━━━┻━━━┻━━━━━▀━━━━━┛
+ *
+ * = (¬a ∧ b ∧ sel) ∨ (a ∧ ¬b ∧ ¬sel) ∨ (a ∧ b ∧ ¬sel) ∨ (a ∧ b ∧ sel)
+ *
+ * after distribution on (¬a ∧ b ∧ sel) ∨  (a ∧ b ∧ sel)
+ * = ((b ∧ sel) ∧ (¬a ∨ a)) ∨ (a ∧ ¬b ∧ ¬sel) ∨ (a ∧ b ∧ ¬sel)
+ *
+ * after complementation on (¬a ∨ a)
+ * = (b ∧ sel) ∨ (a ∧ ¬b ∧ ¬sel) ∨ (a ∧ b ∧ ¬sel)
+ *
+ * after distribution on (a ∧ ¬b ∧ ¬sel) ∨ (a ∧ b ∧ ¬sel)
+ * = (b ∧ sel) ∨ ((a ∧  ¬sel) ∧ (¬b ∨ b))
+ *
+ * after complementation on (¬b ∨ b)
+ * = (b ∧ sel) ∨ (a ∧ ¬sel)
+ *
+ * after double-negation
+ * = ¬(¬((b ∧ sel) ∨ (a ∧ ¬sel)))
+ *
+ * after de morgan's on ¬((b ∧ sel) ∨ (a ∧ ¬sel))
+ * = ¬(¬(b ∧ sel) ∧ ¬(a ∧ ¬sel))
+ *
+ * = NAND(¬(b ∧ sel), ¬(a ∧ ¬sel))
+ * = NAND(NAND(b, sel), NAND(a, NOT(sel)))
+ *
  */
 
 CHIP Mux {
@@ -14,5 +47,8 @@ CHIP Mux {
     OUT out;
 
     PARTS:
-    // Put your code here:
+    Not(in=sel, out=not-sel);
+    Nand(a=b, b=sel, out=nand-bsel);
+    Nand(a=a, b=not-sel, out=nand-a.not-sel);
+    Nand(a=nand-bsel, b=nand-a.not-sel, out=out);
 }
