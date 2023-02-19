@@ -5,7 +5,7 @@ projects_dir="${root_dir}/projects"
 tools_dir="${root_dir}/tools"
 hardware_simulator="${tools_dir}/HardwareSimulator.sh"
 
-for project_number in 02; do
+for project_number in 03; do
 	while read -rs hdl; do
 		test_output=$(bash "$hardware_simulator" "${hdl%%.hdl}.tst" 2>&1)
 
