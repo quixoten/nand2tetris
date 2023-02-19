@@ -1,5 +1,6 @@
-tools/bin/Hardware Simulator.dat
+tools/bin/Assembler.dat
 tools/bin/CPU Emulator.dat
+tools/bin/Hardware Simulator.dat
 projects/01/**/*.out
 projects/02/**/*.out
 projects/03/**/*.out
