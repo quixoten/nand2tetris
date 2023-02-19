@@ -6,7 +6,6 @@ tools_dir="${root_dir}/tools"
 hardware_simulator="${tools_dir}/HardwareSimulator.sh"
 cpu_emulator="${tools_dir}/CPUEmulator.sh"
 
-
 for project_number in 01 02 03 04 05; do
 	while read -rs tst; do
 		if [[ $project_number -eq 4 ]]; then
@@ -25,3 +24,18 @@ for project_number in 01 02 03 04 05; do
 		fi
 	done < <(find "${projects_dir}/${project_number}" -name "*.tst")
 done
+
+while read -rs asm; do
+	(
+		cd "${root_dir}/assembler/golang"
+		go run ./... "${asm}" >/dev/null 2>&1
+	)
+
+	diff_output=$(diff -u --color=always "${asm%.asm}.cmp" "${asm%.asm}.hack")
+	if [[ $? -eq 0 ]]; then
+		echo -e "\e[32m✓ projects/${asm##*projects/}\e[0m"
+	else
+		printf "\e[31m%-30s\e[0m\n" "✗ projects/${asm##*projects/}"
+		echo -e "${diff_output}" | sed 's/^/    /'
+	fi
+done < <(find "${projects_dir}/06" -name "*.asm")
