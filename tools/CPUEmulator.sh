@@ -4,7 +4,7 @@
 # mark.armbrust@pobox.com
 
 tools_dir="$(readlink -f "$(dirname "$(readlink -f "$0")")")"
-java_cmd="java -classpath "${CLASSPATH}:bin/classes:bin/lib/Hack.jar:bin/lib/HackGUI.jar:bin/lib/Simulators.jar:bin/lib/SimulatorsGUI.jar:bin/lib/Compilers.jar" CPUEmulatorMain"
+java_cmd="java -classpath ${CLASSPATH}:bin/classes:bin/lib/Hack.jar:bin/lib/HackGUI.jar:bin/lib/Simulators.jar:bin/lib/SimulatorsGUI.jar:bin/lib/Compilers.jar CPUEmulatorMain"
 
 if [[ "$#" -gt 1 || "$1" = "-h" || "$1" = "--help" ]]; then
 	echo "Usage:"
@@ -12,7 +12,6 @@ if [[ "$#" -gt 1 || "$1" = "-h" || "$1" = "--help" ]]; then
 	echo "    CPUEmulator.sh FILE.tst    Starts the CPU Emulator and runs the File.tst"
 	echo "                               test script.  The success/failure message"
 	echo "                               is printed to the command console."
-	echo "\$@ = $@"
 	exit 0
 fi
 
