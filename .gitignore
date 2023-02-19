@@ -1,2 +1,4 @@
 tools/bin/Hardware Simulator.dat
-projects/01/*.out
+projects/01/**/*.out
+projects/02/**/*.out
+projects/03/**/*.out
