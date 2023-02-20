@@ -9,3 +9,5 @@ projects/05/**/*.out
 projects/06/**/*.hack
 projects/07/**/*.asm
 projects/07/**/*.out
+projects/08/**/*.asm
+projects/08/**/*.out

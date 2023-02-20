@@ -11,6 +11,7 @@ tools_dir="${root_dir}/tools"
 hardware_simulator="${tools_dir}/HardwareSimulator.sh"
 cpu_emulator="${tools_dir}/CPUEmulator.sh"
 
+
 test-projects-one-through-five() {
 	for project_number in 01 02 03 04 05; do
 		while read -rs tst; do
@@ -32,6 +33,7 @@ test-projects-one-through-five() {
 	done
 }
 
+
 test-project-six() {
 	while read -rs asm; do
 		(
@@ -48,6 +50,7 @@ test-project-six() {
 		fi
 	done < <(find "${projects_dir}/06" -name "*.asm")
 }
+
 
 test-project-seven() {
 	while read -rs vm; do
@@ -68,6 +71,31 @@ test-project-seven() {
 	done < <(find "${projects_dir}/07" -name "*.vm")
 }
 
+
+test-project-eight() {
+	while read -rs tst; do
+		sourcedir="${tst%/*}"
+
+		while read -rs vm; do
+			sourcedir="${tst%/*}"
+			(
+				cd "${root_dir}/translator/rust"
+				cargo run "${vm}" >/dev/null 2>&1
+			)
+		done < <(find "${sourcedir}" -name "*.vm")
+
+		test_output=$(bash "$cpu_emulator" "${tst}" 2>&1)
+
+		if [[ $? -eq 0 ]]; then
+			echo -e "\e[32m✓ projects/${tst##*projects/}\e[0m"
+		else
+			printf "\e[31m%-30s\e[0m" "✗ projects/${tst##*projects/}"
+			echo "${test_output}" | sed 's/^/    /'
+		fi
+	done < <(find "${projects_dir}/08" -name "*.tst" ! -name "*VME.tst")
+}
+
 test-projects-one-through-five
 test-project-six
 test-project-seven
+test-project-eight
