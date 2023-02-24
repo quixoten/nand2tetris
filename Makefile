@@ -1,4 +1,7 @@
 test:
 	$(CURDIR)/scripts/test.sh
 
-.PHONY: test
+reset: 
+	$(CURDIR)/scripts/reset.sh
+
+.PHONY: test reset
