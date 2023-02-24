@@ -12,25 +12,23 @@ hardware_simulator="${tools_dir}/HardwareSimulator.sh"
 cpu_emulator="${tools_dir}/CPUEmulator.sh"
 
 
-test-projects-one-through-five() {
-	for project_number in 01 02 03 04 05; do
-		while read -rs tst; do
-			if [[ $project_number -eq 4 ]]; then
-				test_tool="${cpu_emulator}"
-			else
-				test_tool="${hardware_simulator}"
-			fi
+test-hdl-project() {
+  declare project_number="$1"
 
-			test_output=$(bash "$test_tool" "${tst}" 2>&1)
+  while read -rs tst; do
+    if [[ $project_number -eq 4 ]]; then
+      test_tool="${cpu_emulator}"
+    else
+      test_tool="${hardware_simulator}"
+    fi
 
-			if [[ $? -eq 0 ]]; then
-				echo -e "\e[32m✓ projects/${tst##*projects/}\e[0m"
-			else
-				printf "\e[31m%-30s\e[0m" "✗ projects/${tst##*projects/}"
-				echo "${test_output}" | sed 's/^/    /'
-			fi
-		done < <(find "${projects_dir}/${project_number}" -name "*.tst")
-	done
+    if test_output="$(bash "$test_tool" "${tst}" 2>&1)"; then
+      echo -e "\e[32m✓ projects/${tst##*projects/}\e[0m"
+    else
+      printf "\e[31m%-30s\e[0m" "✗ projects/${tst##*projects/}"
+      echo "${test_output}" | sed 's/^/    /'
+    fi
+  done < <(find "${projects_dir}/${project_number}" -name "*.tst")
 }
 
 
@@ -60,9 +58,8 @@ test-project-seven() {
 		)
 
 		tst="${vm%.vm}.tst"
-		test_output=$(bash "$cpu_emulator" "${tst}" 2>&1)
-
-		if [[ $? -eq 0 ]]; then
+		
+		if test_output=$(bash "$cpu_emulator" "${tst}" 2>&1); then
 			echo -e "\e[32m✓ projects/${tst##*projects/}\e[0m"
 		else
 			printf "\e[31m%-30s\e[0m" "✗ projects/${tst##*projects/}"
@@ -80,13 +77,11 @@ test-project-eight() {
 			sourcedir="${tst%/*}"
 			(
 				cd "${root_dir}/translator/rust"
-				cargo run "${vm}" >/dev/null 2>&1
+				cargo run "${vm}"
 			)
 		done < <(find "${sourcedir}" -name "*.vm")
 
-		test_output=$(bash "$cpu_emulator" "${tst}" 2>&1)
-
-		if [[ $? -eq 0 ]]; then
+		if test_output=$(bash "$cpu_emulator" "${tst}" 2>&1); then
 			echo -e "\e[32m✓ projects/${tst##*projects/}\e[0m"
 		else
 			printf "\e[31m%-30s\e[0m" "✗ projects/${tst##*projects/}"
@@ -95,7 +90,11 @@ test-project-eight() {
 	done < <(find "${projects_dir}/08" -name "*.tst" ! -name "*VME.tst")
 }
 
-test-projects-one-through-five
+test-hdl-project 01
+test-hdl-project 02
+test-hdl-project 03
+test-hdl-project 04
+test-hdl-project 05
 test-project-six
 test-project-seven
 test-project-eight
