@@ -1,70 +1,60 @@
-// This file is part of www.nand2tetris.org
-// and the book "The Elements of Computing Systems"
-// by Nisan and Schocken, MIT Press.
-// File name: projects/04/Fill.asm
+// The (fill-screen-with-black) and (fill-screen-with-white) "blocks" below are
+// identical except that one sets each address in the screen memory map to -1
+// (black), and the other sets each address to 0 (white). This duplication is
+// desirable to keep all the state in the registers during iteration. This
+// reduces the total number of instructions (PER ITERATION) by 5 (compared to
+// the DRY implmentation I tried first).
+//
+// Before entering a draw loop D is set to 8192 (the total number of addresses
+// in the memory map). On each iteration, the number 24576 (one past the last
+// address in the memory map) is reduced by D to provide the next memory
+// address we want to draw. D is reduced by 1 and the next iteration starts. In
+// other words...
+//
+// Upon the first iteration:
+// A = 24576 - 8192 = 16,384 (the start of the screen memory map)
+//
+// On the second iteration D will have been reduced by 1 to 8191, so now:
+// A = 24576 - 8191 = 16,384 (the second word of the screen memory map)
+//
+// This process continues until D=1:
+// A = 24576 - 1 = 24575 (the last word of the screen memory map)
+//
+// When D is then reduced to 0, the loop ends and control flow starts back over
+// at the top of the program where the keyboard memory map is checked.
 
-// Runs an infinite loop that listens to the keyboard input.
-// When a key is pressed (any key), the program blackens the screen,
-// i.e. writes "black" in every pixel;
-// the screen should remain fully black as long as the key is pressed. 
-// When no key is pressed, the program clears the screen, i.e. writes
-// "white" in every pixel;
-// the screen should remain fully clear as long as no key is pressed.
+(check-keyboard)
 
-// last-word = SCREEN + 8192 (8K)
-  @SCREEN
-  D=A
+@KBD
+D=M
+@fill-screen-with-white
+D;JEQ
 
+
+(fill-screen-with-black)
   @8192
-  D=D+A
+  D=A
+  (fill-line-with-black)
+    @24576
 
-  @last-word
-  M=D
-
-(FILL-ENTIRE-SCREEN)
-  // start <next-word> at the top left of the screen.
-  // <next-word> is a pointer
-    @SCREEN
-    D=A
-
-    @next-word
-    M=D
-
-  // set the fill-value based on KBD state
-    @fill-value
-    M=0
-
-    @KBD
-    D=M
-
-    @KEY-PRESSED
-    D;JNE
-
-    @FILL-NEXT-WORD
-    0;JMP
-
-    (KEY-PRESSED)
-    @fill-value
+    A=A-D
     M=-1
+    D=D-1
+    @fill-line-with-black
+    D;JGT
+  @check-keyboard
+  0;JMP
 
-  (FILL-NEXT-WORD)
 
-    // fill in the next 16 pixels
-      @fill-value
-      D=M
-      @next-word
-      A=M
-      M=D
-
-    // advance the <next-word> forward
-      @next-word
-      MD=M+1
-
-    @last-word
-    D=M-D // D = last-word - next-word
-
-    @FILL-NEXT-WORD
-    D;JGT // last-word - next-word > 0, fill next word
-
-@FILL-ENTIRE-SCREEN
-0;JMP
+(fill-screen-with-white)
+  @8192
+  D=A
+  (fill-line-with-white)
+    @24576
+    A=A-D
+    M=0
+    D=D-1
+    @fill-line-with-white
+    D;JGT
+  @check-keyboard
+  0;JMP
