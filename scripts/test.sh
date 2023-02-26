@@ -72,14 +72,18 @@ test-project-seven() {
 test-project-eight() {
 	while read -rs tst; do
 		sourcedir="${tst%/*}"
+    sourcefile="${sourcedir}/${sourcedir##*/}.vm"
 
-		while read -rs vm; do
-			sourcedir="${tst%/*}"
-			(
-				cd "${root_dir}/translator/rust"
-				cargo run "${vm}"
-			)
-		done < <(find "${sourcedir}" -name "*.vm")
+    if [[ -e "${sourcefile}" ]]; then
+      source="${sourcefile}"
+    else
+      source="${sourcedir}"
+    fi
+
+    (
+      cd "${root_dir}/translator/rust"
+      cargo run "${source}" >/dev/null 2>&1
+    )
 
 		if test_output=$(bash "$cpu_emulator" "${tst}" 2>&1); then
 			echo -e "\e[32m✓ projects/${tst##*projects/}\e[0m"
