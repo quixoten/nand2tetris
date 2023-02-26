@@ -175,10 +175,6 @@ func (l *Lexer) ConsumeDestOrComp() *Token {
 			abort(fmt.Sprintf("unexpected character '%c' %d:%d", l.Next.Rune, l.Next.Line, l.Next.Column))
 		}
 	}
-
-	abort("Reached end of file while parsing instruction")
-
-	return nil
 }
 
 func (l *Lexer) ConsumeComp() *Token {
@@ -197,10 +193,6 @@ func (l *Lexer) ConsumeComp() *Token {
 			abort(fmt.Sprintf("unexpected character '%c' at %d:%d", l.Next.Rune, l.Next.Line, l.Next.Column))
 		}
 	}
-
-	abort("Reached end of file while parsing instruction")
-
-	return nil
 }
 
 func (l *Lexer) ConsumeJump() *Token {

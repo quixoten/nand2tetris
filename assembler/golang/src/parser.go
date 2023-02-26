@@ -109,7 +109,7 @@ func (p *Parser) Instruction() {
 
 	case TT_Label:
 		if label, ok := p.Symbols[p.Current.Data]; ok {
-			abort(fmt.Sprintf("Found duplicate label named \"%s\"", label))
+			abort(fmt.Sprintf("Found duplicate label named \"%d\"", label))
 		}
 		p.Symbols[p.Current.Data] = len(p.Instructions)
 		p.ConsumeToken()
@@ -230,7 +230,6 @@ func (p *Parser) Match(tt TokenType) {
 	case tt:
 		p.ConsumeToken()
 	default:
-		abort(fmt.Sprintf("Expected %s at %d:%d", p.Current.Line, p.Current.Column))
-
+		abort(fmt.Sprintf("Expected %s at %d:%d", tt, p.Current.Line, p.Current.Column))
 	}
 }
