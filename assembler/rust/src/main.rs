@@ -82,7 +82,7 @@ impl Lexer {
 
             let state = std::mem::replace(&mut self.state, Box::new(LexInstructionStart));
 
-            if let Some(next_state) = state.parse(self) {
+            if let Some(next_state) = state.scan(self) {
                 self.state = next_state;
                 continue;
             }
@@ -367,7 +367,7 @@ impl std::fmt::Debug for dyn LexerState {
 }
 
 trait LexerState {
-    fn parse(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>>;
+    fn scan(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>>;
     fn name(&self) -> String {
         std::any::type_name::<Self>().into()
     }
@@ -375,7 +375,7 @@ trait LexerState {
 
 struct LexInstructionStart;
 impl LexerState for LexInstructionStart {
-    fn parse(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
+    fn scan(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
         // println!("in {}", self.name());
         match () {
             _ if lexer.accept_whitespace() => Some(Box::new(Self)),
@@ -390,7 +390,7 @@ impl LexerState for LexInstructionStart {
 
 struct LexComment;
 impl LexerState for LexComment {
-    fn parse(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
+    fn scan(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
         // println!("in {}", self.name());
         match () {
             _ if lexer.accept_eol() => Some(Box::new(LexInstructionStart)),
@@ -402,7 +402,7 @@ impl LexerState for LexComment {
 
 struct LexAddress;
 impl LexerState for LexAddress {
-    fn parse(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
+    fn scan(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
         // println!("in {}", self.name());
 
         if let Some(label) = lexer.accept_label() {
@@ -417,7 +417,7 @@ impl LexerState for LexAddress {
 
 struct LexLabel;
 impl LexerState for LexLabel {
-    fn parse(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
+    fn scan(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
         // println!("in {}", self.name());
         if let Some(label) = lexer.accept_label() {
             lexer.emit(Token::Label(label));
@@ -433,7 +433,7 @@ impl LexerState for LexLabel {
 
 struct LexLabelEnd;
 impl LexerState for LexLabelEnd {
-    fn parse(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
+    fn scan(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
         // println!("in {}", self.name());
         match () {
             _ if lexer.accept_str(")") => Some(Box::new(LexInstructionEnd)),
@@ -447,7 +447,7 @@ impl LexerState for LexLabelEnd {
 
 struct LexDest;
 impl LexerState for LexDest {
-    fn parse(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
+    fn scan(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
         // println!("in {}", self.name());
 
         match () {
@@ -467,7 +467,7 @@ impl LexerState for LexDest {
 
 struct LexComp;
 impl LexerState for LexComp {
-    fn parse(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
+    fn scan(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
         // println!("in {}", self.name());
         match () {
             _ if lexer.accept_str("A+1") => lexer.emit(Token::Comp(CompToken::AddA1)),
@@ -512,7 +512,7 @@ impl LexerState for LexComp {
 
 struct LexAfterComp;
 impl LexerState for LexAfterComp {
-    fn parse(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
+    fn scan(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
         // println!("in {}", self.name());
         match () {
             _ if lexer.accept_str(";") => Some(Box::new(LexJump)),
@@ -526,7 +526,7 @@ impl LexerState for LexAfterComp {
 
 struct LexJump;
 impl LexerState for LexJump {
-    fn parse(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
+    fn scan(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
         // println!("in {}", self.name());
         match () {
             _ if lexer.accept_str("JGT") => lexer.emit(Token::Jump(JumpToken::JGT)),
@@ -548,7 +548,7 @@ impl LexerState for LexJump {
 
 struct LexInstructionEnd;
 impl LexerState for LexInstructionEnd {
-    fn parse(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
+    fn scan(&self, lexer: &mut Lexer) -> Option<Box<dyn LexerState>> {
         // println!("in {}", self.name());
         match () {
             _ if lexer.accept_str("//") => Some(Box::new(LexComment)),
