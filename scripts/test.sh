@@ -35,12 +35,11 @@ test-hdl-project() {
 test-project-six() {
 	while read -rs asm; do
 		(
-			cd "${root_dir}/assembler/golang"
-			go run ./... "${asm}" >/dev/null 2>&1
+			cd "${root_dir}/assembler/rust"
+			cargo run "${asm}" >/dev/null 2>&1
 		)
 
-		diff_output=$(diff -u --color=always "${asm%.asm}.cmp" "${asm%.asm}.hack")
-		if [[ $? -eq 0 ]]; then
+		if diff_output=$(diff -u --color=always "${asm%.asm}.cmp" "${asm%.asm}.hack"); then
 			echo -e "\e[32m✓ projects/${asm##*projects/}\e[0m"
 		else
 			printf "\e[31m%-30s\e[0m\n" "✗ projects/${asm##*projects/}"
