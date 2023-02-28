@@ -6,6 +6,26 @@
 // i don't think this is the best way, or even a good way, to express those ideas in rust. i
 // avoided looking at existing parser libraries for this implementation, but i'd like to come back
 // to this when i'm more familiar with rust.
+//
+// i didn't do a great job of emulating Rob's strategy. he used a start variable in his Lexer
+// struct to keep track of the length of the current token being lexed:
+//
+//     position - start = current_token_length)
+//
+// which made his calls to emit really clean. if i did a better job of copying this, all the emit
+// calls should have just looked like:
+//
+//     lexer.emit(Token::...)
+//
+// which is mostly the case, but in LexAddress and LexLabel there's additional information beyond
+// just the token type being passed to emit. this also broke the uniformity of the accept_*
+// methods because acccept_label and accept_addr return Option<String>, and Option<usize>
+// respectively. All the other accept_* methods just return bool.
+//
+// a final criticism of this implementation is the error handling. I'm using panic! to bubble up
+// errors, but Rob used a wrapper funciton that would print a nicely formatted error before
+// returning "None" (which bailed out of the lexer). this shouldn't be difficult to replicate in
+// rust, but i got lazy.
 
 use std::{
     collections::HashMap,
