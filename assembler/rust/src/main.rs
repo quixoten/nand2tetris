@@ -1,3 +1,12 @@
+// some if this looks the way it does because i was curious to try out the strategy Rob Pike
+// demonstrated in this video:
+//
+// https://www.youtube.com/watch?v=HxaD_trXwRE
+//
+// i don't think this is the best way, or even a good way, to express those ideas in rust. i
+// avoided looking at existing parser libraries for this implementation, but i'd like to come back
+// to this after i've read through some other parsing implementations.
+
 use std::{
     collections::HashMap,
     sync::mpsc::{sync_channel, Receiver, SyncSender},
