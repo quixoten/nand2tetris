@@ -1,5 +1,3 @@
-//#![allow(dead_code)]
-
 use std::{
     collections::HashMap,
     sync::mpsc::{sync_channel, Receiver, SyncSender},
@@ -43,10 +41,7 @@ impl Lexer {
     }
 
     fn current_char(&self) -> Option<char> {
-        match self.current_byte() {
-            Some(byte) => Some(byte as char),
-            _ => None,
-        }
+        self.current_byte().map(|byte| byte as char)
     }
 
     fn next_token(&mut self) -> Option<Token> {
@@ -152,7 +147,7 @@ impl Lexer {
             self.advance(1);
         }
 
-        if label.len() > 0 {
+        if !label.is_empty() {
             Some(label)
         } else {
             None
@@ -167,7 +162,7 @@ impl Lexer {
             self.advance(1);
         }
 
-        if number.len() > 0 {
+        if !number.is_empty() {
             number.parse::<usize>().ok()
         } else {
             None
@@ -175,7 +170,7 @@ impl Lexer {
     }
 
     fn eof(&self) -> bool {
-        !(self.position < self.bytes.len())
+        self.position >= self.bytes.len()
     }
 }
 
@@ -188,7 +183,7 @@ impl Instruction {
     fn to_binary(&self) -> Vec<u8> {
         match self {
             Instruction::Addr(addr) => match addr {
-                AddrToken::Static(addr) => format!("0{:015b}\n", addr).into_bytes(),
+                AddrToken::Static(addr) => format!("0{addr:015b}\n").into_bytes(),
                 AddrToken::Dynamic(_) => panic!("should not call to_binary on dynamic addr"),
             },
 
@@ -592,7 +587,7 @@ mod parser {
             loop {
                 match self.lexer.next_token() {
                     Some(Token::Label(label)) => {
-                        if let Some(_) = self.symbols.get(&label) {
+                        if self.symbols.get(&label).is_some() {
                             panic!("the ({label}) label is defined twice");
                         } else {
                             self.symbols.insert(label, self.instructions.len());
