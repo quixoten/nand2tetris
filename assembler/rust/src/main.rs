@@ -3,14 +3,10 @@
 //
 // https://www.youtube.com/watch?v=HxaD_trXwRE
 //
-// i don't think this is the best way, or even a good way, to express those ideas in rust. i
-// avoided looking at existing parser libraries for this implementation, but i'd like to come back
-// to this when i'm more familiar with rust.
-//
 // i didn't do a great job of emulating Rob's strategy. he used a start variable in his Lexer
-// struct to keep track of the length of the current token being lexed:
+// struct to keep track of the length of the current token being lexed, i.e.,
 //
-//     position - start = current_token_length)
+//     pos - start = current_token_length
 //
 // which made his calls to emit really clean. if i did a better job of copying this, all the emit
 // calls should have just looked like:
@@ -26,6 +22,10 @@
 // errors, but Rob used a wrapper funciton that would print a nicely formatted error before
 // returning "None" (which bailed out of the lexer). this shouldn't be difficult to replicate in
 // rust, but i got lazy.
+//
+// i don't think this is the best way, or even a good way, to express the ideas from Rob's video in
+// rust. i'd like to come back to this after i've read through some existing parser combinator
+// libraries and am more familiar with rust.
 
 use std::{
     collections::HashMap,
