@@ -27,19 +27,18 @@ reset-asm-files() {
 }
 
 restore-staged-files() {
-  (
-    cd "$root_dir"
-    git restore --staged \*
-  )
+	(
+		cd "$root_dir"
+		git restore --staged \*
+	)
 }
 
 clean-ignored-files() {
-  (
-    cd "$root_dir"
-    git clean -Xf
-  )
+	(
+		cd "$root_dir"
+		git clean -Xf
+	)
 }
-
 
 reset-hdl-files
 reset-asm-files
