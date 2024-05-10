@@ -6,7 +6,24 @@
 /**
  * Exclusive-or gate:
  * out = not (a == b)
+ *
+ * ┌───┬───┬───┐
+ * │ a │ b │ o │
+ * ├───┼───┼───┤
+ * │ 0 │ 0 │ 0 │
+ * │ 0 │ 1 │ 1 │ ¬a ∧ b
+ * │ 1 │ 0 │ 1 │ a ∧ ¬b
+ * │ 1 │ 1 │ 0 │
+ * └───┴───┴───┘
+ *
+ * = (¬a ∧ b) ∨ (a ∧ ¬b)
+ * = (b ∧ ¬b) ∨ (¬a ∧ b) ∨ (a ∧ ¬a) ∨ (a ∧ ¬b)
+ * = (b ∧ (¬b ∨ ¬a)) ∨ (a ∧ (¬a ∨ ¬b))
+ * = (b ∧ ¬(b ∧ a)) ∨ (a ∧ ¬(a ∧ b))
+ * = ¬(¬(b ∧ ¬(b ∧ a)) ∧ ¬(a ∧ ¬(a ∧ b)))
+ * = ¬(¬(b ∧ Nand(a,b)) ∧ ¬(a ∧ Nand(a,b)))
  */
+
 
 CHIP Xor {
     IN a, b;
@@ -14,7 +31,7 @@ CHIP Xor {
 
     PARTS:
     Nand(a=a, b=b, out=nand-ab);
-    Nand(a=a, b=nand-ab, out=nand-a.ab);
-    Nand(a=b, b=nand-ab, out=nand-b.ab);
-    Nand(a=nand-a.ab, b=nand-b.ab, out=out);
+    Nand(a=a, b=nand-ab, out=nand-a-ab);
+    Nand(a=b, b=nand-ab, out=nand-b-ab);
+    Nand(a=nand-a-ab, b=nand-b-ab, out=out);
 }
