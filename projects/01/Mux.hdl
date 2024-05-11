@@ -26,7 +26,7 @@
  * = (b ∧ sel) ∨ (a ∧ ¬b ∧ ¬sel) ∨ (a ∧ b ∧ ¬sel)
  *
  * after distribution on (a ∧ ¬b ∧ ¬sel) ∨ (a ∧ b ∧ ¬sel)
- * = (b ∧ sel) ∨ ((a ∧  ¬sel) ∧ (¬b ∨ b))
+ * = (b ∧ sel) ∨ ((a ∧ ¬sel) ∧ (¬b ∨ b))
  *
  * after complementation on (¬b ∨ b)
  * = (b ∧ sel) ∨ (a ∧ ¬sel)
